@@ -29,6 +29,7 @@ async function run() {
           await client.connect();
 
           const serviceCollection = client.db("jerins_parlour").collection("services");
+          const bookingCollection = client.db("jerins_parlour").collection("bookings");
 
           // all apis start here
           app.get("/services", async (req, res) => {
@@ -36,13 +37,23 @@ async function run() {
                res.send(services);
           })
 
-          app.get(("/booking/:serviceId"), async (req, res) => {
+          app.get(("/service/:serviceId"), async (req, res) => {
                const serviceId = req.params.serviceId;
                const query = { _id: new ObjectId(serviceId) };
                const singleService = await serviceCollection.findOne(query);
                res.send(singleService);
 
           })
+
+          //booking related apis
+          app.post("/bookings", async (req, res) => {
+               const bookingInfo = req.body;
+               const result = await bookingCollection.insertOne(bookingInfo);
+               res.status(200).send({
+                    error: false, result
+               })
+          })
+
 
           // Send a ping to confirm a successful connection
           await client.db("admin").command({ ping: 1 });
