@@ -47,7 +47,12 @@ async function run() {
                res.status(200).send(newUser);
           })
 
-          // all apis start here
+          app.get("/users", async (req, res) => {
+               const result = await userCollection.find().toArray();
+               res.send(result);
+          })
+
+          // service related api
           app.get("/services", async (req, res) => {
                const services = await serviceCollection.find().toArray();
                res.send(services);
