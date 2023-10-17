@@ -28,8 +28,24 @@ async function run() {
           // Connect the client to the server	(optional starting in v4.7)
           await client.connect();
 
+          const userCollection = client.db("jerins_parlour").collection("users");
           const serviceCollection = client.db("jerins_parlour").collection("services");
           const bookingCollection = client.db("jerins_parlour").collection("bookings");
+
+          //user related apis
+          app.post("/createNewUser", async (req, res) => {
+               const userInfo = req.body;
+               const query = { emai: userInfo.email };
+               //user already exist or not
+               const existUser = await userCollection.findOne(query);
+               if (existUser) {
+                    return res.send({ message: "user already exist" })
+               };
+
+               //brand new user
+               const newUser = await userCollection.insertOne(userInfo);
+               res.status(200).send(newUser);
+          })
 
           // all apis start here
           app.get("/services", async (req, res) => {
@@ -46,12 +62,22 @@ async function run() {
           })
 
           //booking related apis
+          app.get("/bookings", async (req, res) => {
+               const email = req.query.email;
+               const query = { email: email };
+               const bookings = await bookingCollection.find(query).toArray();
+               res.send(bookings);
+          })
+
           app.post("/bookings", async (req, res) => {
                const bookingInfo = req.body;
-               const result = await bookingCollection.insertOne(bookingInfo);
-               res.status(200).send({
-                    error: false, result
-               })
+               const booked = await bookingCollection.insertOne(bookingInfo);
+               res.status(200).send(booked);
+          })
+
+          app.get("/orderList", async (req, res) => {
+               const orderList = await bookingCollection.find().toArray();
+               res.send(orderList);
           })
 
 
