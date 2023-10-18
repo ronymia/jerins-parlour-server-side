@@ -35,16 +35,16 @@ async function run() {
           //user related apis
           app.post("/createNewUser", async (req, res) => {
                const userInfo = req.body;
-               const query = { emai: userInfo.email };
+               const query = { email: userInfo.email };
                //user already exist or not
-               const existUser = await userCollection.findOne(query);
+               const existUser = await userCollection.findOne(query)
                if (existUser) {
                     return res.send({ message: "user already exist" })
-               };
-
-               //brand new user
-               const newUser = await userCollection.insertOne(userInfo);
-               res.status(200).send(newUser);
+               } else {
+                    //brand new user
+                    const newUser = await userCollection.insertOne(userInfo);
+                    res.status(200).send(newUser);
+               }
           })
 
           app.get("/users", async (req, res) => {
@@ -70,19 +70,21 @@ async function run() {
           app.get("/bookings", async (req, res) => {
                const email = req.query.email;
                const query = { email: email };
-               const bookings = await bookingCollection.find(query).toArray();
-               res.send(bookings);
+               if (email) {
+                    // induvital booked
+                    const bookings = await bookingCollection.find(query).toArray();
+                    res.send(bookings);
+               } else {
+                    // orderlist
+                    const bookings = await bookingCollection.find().toArray();
+                    res.send(bookings);
+               }
           })
 
           app.post("/bookings", async (req, res) => {
                const bookingInfo = req.body;
                const booked = await bookingCollection.insertOne(bookingInfo);
                res.status(200).send(booked);
-          })
-
-          app.get("/orderList", async (req, res) => {
-               const orderList = await bookingCollection.find().toArray();
-               res.send(orderList);
           })
 
 
