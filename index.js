@@ -3,7 +3,7 @@ const app = express();
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 require('dotenv').config();
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId, CURSOR_FLAGS } = require('mongodb');
 
 const PORT = process.env.PORT || 5000;
 
@@ -23,6 +23,28 @@ const client = new MongoClient(uri, {
           deprecationErrors: true,
      }
 });
+
+//verify token
+const verifyJWT = (req, res, next) => {
+     const authorization = req.headers.authorization;
+     if (!authorization) {
+          return res.status(401).send({ message: 'unauthorizated access' });
+     }
+
+     // bearer token
+     const token = authorization.split(" ")[1];
+     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (error, decode) {
+          if (error) {
+               console.log(error)
+               return res.status(401).send({
+                    error: true,
+                    message: 'Invalid token'
+               })
+          }
+          req.decode = decode;
+          next();
+     })
+}
 
 async function run() {
      try {
@@ -75,16 +97,17 @@ async function run() {
           })
 
           //booking related apis
-          app.get("/bookings", async (req, res) => {
+          app.get("/bookings", verifyJWT, async (req, res) => {
                const email = req.query.email;
                const query = { email: email };
+               const decodedEmail = req.decode.email;
+
+               if (email !== decodedEmail) {
+                    return res.status(403).send({ error: true, message: 'forbidden access' })
+               }
+
                if (email) {
-                    // induvital booked
                     const bookings = await bookingCollection.find(query).toArray();
-                    res.send(bookings);
-               } else {
-                    // orderlist
-                    const bookings = await bookingCollection.find().toArray();
                     res.send(bookings);
                }
           })
@@ -93,6 +116,11 @@ async function run() {
                const bookingInfo = req.body;
                const booked = await bookingCollection.insertOne(bookingInfo);
                res.status(200).send(booked);
+          })
+
+          app.get("/orderList", async (req, res) => {
+               const bookings = await bookingCollection.find().toArray();
+               res.send(bookings);
           })
 
 
