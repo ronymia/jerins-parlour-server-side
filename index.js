@@ -54,6 +54,7 @@ async function run() {
           const userCollection = client.db("jerins_parlour").collection("users");
           const serviceCollection = client.db("jerins_parlour").collection("services");
           const bookingCollection = client.db("jerins_parlour").collection("bookings");
+          const reviewCollection = client.db("jerins_parlour").collection("reviews");
 
           // token create
           app.post("/jwt", async (req, res) => {
@@ -82,6 +83,23 @@ async function run() {
                res.send(result);
           })
 
+
+          // admin related apis
+          app.patch("/user/admin/:id", async (req, res) => {
+               const userId = req.params.id;
+               const filter = { _id: new ObjectId(userId) };
+               const updateDoc = {
+                    $set: {
+                         role: 'admin'
+                    },
+               };
+               const admin = await userCollection.updateOne(filter, updateDoc);
+               res.send(admin);
+          })
+
+
+
+
           // service related api
           app.get("/services", async (req, res) => {
                const services = await serviceCollection.find().toArray();
@@ -106,10 +124,8 @@ async function run() {
                     return res.status(403).send({ error: true, message: 'forbidden access' })
                }
 
-               if (email) {
-                    const bookings = await bookingCollection.find(query).toArray();
-                    res.send(bookings);
-               }
+               const bookings = await bookingCollection.find(query).toArray();
+               res.send(bookings);
           })
 
           app.post("/bookings", async (req, res) => {
@@ -118,9 +134,23 @@ async function run() {
                res.status(200).send(booked);
           })
 
+          app.delete('/cancelBooked/:bookedId', async (req, res) => {
+               const bookedId = req.params.bookedId;
+               const query = { _id: new ObjectId(bookedId) };
+               const result = await bookingCollection.deleteOne(query);
+               res.send(result);
+          })
+
           app.get("/orderList", async (req, res) => {
                const bookings = await bookingCollection.find().toArray();
                res.send(bookings);
+          })
+
+          // review related apis
+          app.post("/createMyReview", async (req, res) => {
+               const reviewData = req.body;
+               const result = await reviewCollection.insertOne(reviewData);
+               res.send(result);
           })
 
 
