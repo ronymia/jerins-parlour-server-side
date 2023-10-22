@@ -84,7 +84,22 @@ async function run() {
           })
 
 
+
           // admin related apis
+          app.get("/users/admin/:email", verifyJWT, async (req, res) => {
+               const email = req.params.email;
+               const decodedEmail = req.decode.email;
+               if (email !== decodedEmail) {
+                    res.send({ admin: false });
+               }
+
+               const query = { email: email };
+               const user = await userCollection.findOne(query);
+               const result = { admin: user?.role === 'admin' };
+               res.send(result);
+          })
+
+
           app.patch("/user/admin/:id", async (req, res) => {
                const userId = req.params.id;
                const filter = { _id: new ObjectId(userId) };
