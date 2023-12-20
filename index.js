@@ -157,7 +157,9 @@ async function run() {
           })
 
           app.get("/orderList", async (req, res) => {
-               const bookings = await bookingCollection.find().toArray();
+               const bookings = await bookingCollection
+                    .find().skip(10)
+                    .toArray();
                res.send(bookings);
           })
 
