@@ -116,7 +116,7 @@ async function run() {
 
 
           // service related api
-          app.get("/services", async (req, res) => {
+          app.get("/v1/services", async (req, res) => {
                const services = await serviceCollection.find().toArray();
                res.send(services);
           })
@@ -156,7 +156,7 @@ async function run() {
                res.send(result);
           })
 
-          app.get("/orderList", async (req, res) => {
+          app.get("/order-list", async (req, res) => {
                const bookings = await bookingCollection
                     .find().skip(10)
                     .toArray();
